@@ -2,6 +2,7 @@
 #  scraper.py  —  Runs scraper_worker.py as a subprocess
 # ============================================================
 import re
+import os
 import json
 import asyncio
 import logging
@@ -21,37 +22,42 @@ async def scrape_player(overstat_url: str) -> dict:
     if not overstat_url.endswith("/overview"):
         overstat_url += "/overview"
 
-    print(f"[SCRAPER] Starting subprocess for {overstat_url}")
+    print(f"[SCRAPER] Starting for {overstat_url}")
 
     try:
         import sys
         python_exe = sys.executable
-        print(f"[SCRAPER] Using Python: {python_exe}")
+        # Get absolute path to worker script
+        worker_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scraper_worker.py")
+        print(f"[SCRAPER] Python: {python_exe}")
+        print(f"[SCRAPER] Worker: {worker_path}")
+        print(f"[SCRAPER] Worker exists: {os.path.exists(worker_path)}")
+
         proc = await asyncio.create_subprocess_exec(
-            python_exe, "scraper_worker.py", overstat_url,
+            python_exe, worker_path, overstat_url,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            cwd=os.path.dirname(os.path.abspath(__file__)),
         )
-        print(f"[SCRAPER] Subprocess started, waiting up to 60s...")
+        print(f"[SCRAPER] Subprocess started PID={proc.pid}, waiting 60s...")
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
 
         if stderr:
-            print(f"[SCRAPER STDERR] {stderr.decode()[:500]}")
-
+            print(f"[SCRAPER STDERR] {stderr.decode()[:1000]}")
         if stdout:
-            result = json.loads(stdout.decode().strip())
-            print(f"[SCRAPER] Result: {result}")
-
-            # Fallback if all zeros
+            output = stdout.decode().strip()
+            print(f"[SCRAPER STDOUT] {output[:200]}")
+            result = json.loads(output)
+            print(f"[SCRAPER] Success: dmg={result['avg_dmg']} kills={result['total_kills']}")
             if result["avg_dmg"] == 0 and result["total_kills"] == 0:
                 raise ValueError("All stats zero")
-
             return result
 
     except Exception as e:
-        print(f"[SCRAPER] Failed: {e} — using fallback")
+        print(f"[SCRAPER] FAILED: {type(e).__name__}: {e}")
 
     # Randomized fallback
+    print("[SCRAPER] Using randomized fallback")
     return {
         "username":           _extract_username(overstat_url),
         "avg_dmg":            round(random.uniform(450, 750), 1),
@@ -61,3 +67,4 @@ async def scrape_player(overstat_url: str) -> dict:
         "survival_time":      round(random.uniform(8.0, 16.0), 1),
         "most_played_legend": "Wraith",
     }
+# Cache bust Sun Apr 26 05:50:58 UTC 2026
