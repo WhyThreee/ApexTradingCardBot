@@ -10,12 +10,16 @@ RUN apt-get update && apt-get install -y \
     && fc-cache -f -v \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Cache bust - force fresh copy of all files
-ARG CACHE_BUST=1
+# Install Playwright browsers explicitly
+RUN playwright install chromium
+RUN playwright install-deps chromium
+
+# Copy all bot files
+ARG CACHE_BUST=3
 COPY . .
 
 # Start bot
