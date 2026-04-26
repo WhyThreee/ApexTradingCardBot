@@ -1,0 +1,17 @@
+# Secret keys - NEVER commit these
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Legend art cache (large files, re-downloaded automatically)
+cache/
+
+# Local assets (upload separately)
+assets/legends/
+
+# OS files
+.DS_Store
+Thumbs.db
