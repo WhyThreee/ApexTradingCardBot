@@ -59,6 +59,7 @@ def _scrape_sync(overstat_url: str) -> dict:
 
     try:
         with sync_playwright() as p:
+            print("[SCRAPER] Launching Chromium...")
             browser = p.chromium.launch(
                 headless=True,
                 args=[
@@ -68,6 +69,7 @@ def _scrape_sync(overstat_url: str) -> dict:
                     "--disable-gpu",
                 ]
             )
+            print("[SCRAPER] Browser launched successfully")
             page = browser.new_page()
             page.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2,ttf}",
                        lambda r: r.abort())
