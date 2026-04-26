@@ -24,11 +24,15 @@ async def scrape_player(overstat_url: str) -> dict:
     print(f"[SCRAPER] Starting subprocess for {overstat_url}")
 
     try:
+        import sys
+        python_exe = sys.executable
+        print(f"[SCRAPER] Using Python: {python_exe}")
         proc = await asyncio.create_subprocess_exec(
-            "python", "scraper_worker.py", overstat_url,
+            python_exe, "scraper_worker.py", overstat_url,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
+        print(f"[SCRAPER] Subprocess started, waiting up to 60s...")
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
 
         if stderr:
