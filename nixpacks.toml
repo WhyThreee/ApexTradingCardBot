@@ -1,0 +1,26 @@
+[phases.setup]
+nixPkgs = [
+  "python311",
+  "chromium",
+  "chromium-unwrapped",
+  "nss",
+  "nspr",
+  "atk",
+  "cups",
+  "dbus",
+  "expat",
+  "fontconfig",
+  "freefont_ttf",
+  "dejavu_fonts",
+  "liberation_ttf"
+]
+
+[phases.install]
+cmds = [
+  "pip install -r requirements.txt",
+  "playwright install chromium",
+  "playwright install-deps chromium"
+]
+
+[start]
+cmd = "python bot.py"
