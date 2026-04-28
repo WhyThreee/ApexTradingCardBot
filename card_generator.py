@@ -302,8 +302,12 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
 
     draw = ImageDraw.Draw(card)
 
-    # Sample background color for blanking placeholders
-    bg_color = card.getpixel((150, 750))[:3]
+    # For Style 3 (dark card) use white boxes for text zones
+    # For Styles 1 & 2 (light card) sample the background color
+    if style == 3:
+        bg_color = (255, 255, 255)  # white boxes on dark card
+    else:
+        bg_color = card.getpixel((150, 750))[:3]
 
     def blank(zone_key, color=None):
         x0, y0, x1, y1 = zones[zone_key]
