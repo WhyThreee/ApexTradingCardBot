@@ -82,7 +82,7 @@ ZONES_S3 = {
     "ovr":          (104, 121, 252, 235),
     "role":         (106, 239, 251, 293),
     "pfp":          (422, 624, 493, 695),
-    "name":         (229, 718, 687, 770),
+    "name":         (229, 718, 687, 780),
     "stat_avgdmg":  (105, 860, 220, 928),
     "stat_kd":      (232, 860, 351, 928),
     "stat_ast":     (371, 860, 487, 928),
@@ -233,11 +233,11 @@ def _paste_legend(card, leg_img, zone_key, zones=None):
     card.paste(leg_img, (x0, y0), mask)
 
 
-def _draw_text_in_zone(draw, text, zone_key, font_size, color=(20,20,25), zones=None):
+def _draw_text_in_zone(draw, text, zone_key, font_size, color=(20,20,25), zones=None, y_offset=0):
     if zones is None: zones = ZONES_S1
     x0, y0, x1, y1 = zones[zone_key]
     cx = (x0+x1)//2
-    cy = (y0+y1)//2
+    cy = (y0+y1)//2 + y_offset
     zw = x1-x0-8
 
     font = _font(font_size)
@@ -337,8 +337,9 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
     # 4. PFP
     _paste_pfp_in_zone(card, pfp_img, "pfp", zones)
 
-    # 5. Username
-    _draw_text_in_zone(draw, username.upper(), "name", font_size=70, color=(15,15,20), zones=zones)
+    # 5. Username — lower text for Style 3
+    name_offset = 8 if style == 3 else 0
+    _draw_text_in_zone(draw, username.upper(), "name", font_size=70, color=(15,15,20), zones=zones, y_offset=name_offset)
 
     # 6. Stats
     stats = [
