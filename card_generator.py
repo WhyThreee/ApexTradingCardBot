@@ -99,7 +99,7 @@ LOGO_ZONES = {
 
 # Server logo config — guild_id -> logo file path
 SERVER_LOGOS = {
-    1196223607655899187: "assets/logos/colo_server.png",
+    # 1196223607655899187: "assets/logos/colo_server.png",  # disabled
     1292412338749837383: "assets/logos/partner_server.png",
 }
 
