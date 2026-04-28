@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 FONT_DIR     = "assets/fonts"
 TEMPLATE_DIR = "assets/templates"
 
-RARITY_TEMPLATES = {
+# Style 1 templates
+RARITY_TEMPLATES_S1 = {
     "COMMON":    "Blue_Style 1.png",
     "RARE":      "Blue_Style 1.png",
     "EPIC":      "Purple_Style 1.png",
@@ -24,8 +25,31 @@ RARITY_TEMPLATES = {
     "HOLO":      "Holo_Style 1.png",
 }
 
-# Confirmed working coordinates from zone map
-ZONES = {
+# Style 2 templates
+RARITY_TEMPLATES_S2 = {
+    "COMMON":    "Blue_Style 2.png",
+    "RARE":      "Blue_Style 2.png",
+    "EPIC":      "Purple_Style 2.png",
+    "LEGENDARY": "Gold_Style 2.png",
+    "MYTHIC":    "Red_Style 2.png",
+    "HOLO":      "Holo_Style 2.png",
+}
+
+# Style 3 templates
+RARITY_TEMPLATES_S3 = {
+    "COMMON":    "Blue_Style 3.png",
+    "RARE":      "Blue_Style 3.png",
+    "EPIC":      "Purple_Style 3.png",
+    "LEGENDARY": "Gold_Style 3.png",
+    "MYTHIC":    "Red_Style 3.png",
+    "HOLO":      "Holo_Style 3.png",
+}
+
+# Keep default for backwards compat
+RARITY_TEMPLATES = RARITY_TEMPLATES_S1
+
+# Style 1 zones (918x1152)
+ZONES_S1 = {
     "art_box":      (321,  92,  807,  603),
     "ovr":          ( 95,  54,  274,  198),
     "role":         ( 96, 202,  274,  247),
@@ -37,6 +61,50 @@ ZONES = {
     "stat_kills":   (544, 912,  677,  969),
     "stat_srt":     (692, 912,  816,  969),
 }
+
+# Style 2 zones (755x1072)
+ZONES_S2 = {
+    "art_box":      (305, 216,  618,  552),
+    "ovr":          (118, 147,  248,  252),
+    "role":         (120, 259,  248,  319),
+    "pfp":          (111, 433,  254,  572),
+    "name":         ( 90, 601,  665,  670),
+    "stat_avgdmg":  (102, 694,  262,  763),
+    "stat_kd":      (293, 694,  448,  763),
+    "stat_ast":     (485, 694,  644,  763),
+    "stat_kills":   (185, 830,  342,  897),
+    "stat_srt":     (395, 830,  553,  897),
+}
+
+# Style 3 zones (896x1184)
+ZONES_S3 = {
+    "art_box":      (313, 129, 798, 574),
+    "ovr":          (104, 121, 252, 235),
+    "role":         (106, 239, 251, 293),
+    "pfp":          (422, 624, 493, 695),
+    "name":         (229, 721, 687, 764),
+    "stat_avgdmg":  (105, 860, 220, 928),
+    "stat_kd":      (232, 860, 351, 928),
+    "stat_ast":     (371, 860, 487, 928),
+    "stat_kills":   (499, 860, 636, 928),
+    "stat_srt":     (654, 860, 812, 928),
+}
+
+# Logo zones per style (where server logo gets pasted)
+LOGO_ZONES = {
+    1: (136,  985, 453, 1099),  # Style 1 - bottom left
+    2: (189,   70, 483,  252),  # Style 2 - top center
+    3: ( 91,  963, 246, 1091),  # Style 3 - bottom left
+}
+
+# Server logo config — guild_id -> logo file path
+SERVER_LOGOS = {
+    1196223607655899187: "assets/logos/colo_server.png",
+    1292412338749837383: "assets/logos/partner_server.png",
+}
+
+# Default zones (Style 1)
+ZONES = ZONES_S1
 
 
 def _font(size):
@@ -66,8 +134,9 @@ def roll_rarity():
     return random.choices(RARITIES, weights=RARITY_WEIGHTS, k=1)[0]
 
 
-def _load_template(rarity_name: str) -> Image.Image:
-    fname = RARITY_TEMPLATES.get(rarity_name, "Blue_Style 1.png")
+def _load_template(rarity_name: str, templates: dict = None) -> Image.Image:
+    if templates is None: templates = RARITY_TEMPLATES_S1
+    fname = templates.get(rarity_name, list(templates.values())[0])
     for tdir in [TEMPLATE_DIR, "/mnt/user-data/uploads"]:
         tpath = Path(tdir) / fname
         if tpath.exists():
@@ -148,8 +217,9 @@ def _zone_size(zone_key):
     return x1-x0, y1-y0
 
 
-def _paste_legend(card, leg_img, zone_key):
-    x0, y0, x1, y1 = ZONES[zone_key]
+def _paste_legend(card, leg_img, zone_key, zones=None):
+    if zones is None: zones = ZONES_S1
+    x0, y0, x1, y1 = zones[zone_key]
     zw, zh = x1-x0, y1-y0
     sw, sh = leg_img.size
     scale = max(zw/sw, zh/sh)
@@ -163,8 +233,9 @@ def _paste_legend(card, leg_img, zone_key):
     card.paste(leg_img, (x0, y0), mask)
 
 
-def _draw_text_in_zone(draw, text, zone_key, font_size, color=(20,20,25)):
-    x0, y0, x1, y1 = ZONES[zone_key]
+def _draw_text_in_zone(draw, text, zone_key, font_size, color=(20,20,25), zones=None):
+    if zones is None: zones = ZONES_S1
+    x0, y0, x1, y1 = zones[zone_key]
     cx = (x0+x1)//2
     cy = (y0+y1)//2
     zw = x1-x0-8
@@ -182,9 +253,10 @@ def _draw_text_in_zone(draw, text, zone_key, font_size, color=(20,20,25)):
     draw.text((cx, cy), text, font=font, fill=color, anchor="mm")
 
 
-def _paste_pfp_in_zone(card, pfp, zone_key):
+def _paste_pfp_in_zone(card, pfp, zone_key, zones=None):
     if pfp is None: return
-    x0, y0, x1, y1 = ZONES[zone_key]
+    if zones is None: zones = ZONES_S1
+    x0, y0, x1, y1 = zones[zone_key]
     zw, zh = x1-x0, y1-y0
     size = min(zw, zh)
     pfp_r = pfp.resize((size, size), Image.LANCZOS)
@@ -194,12 +266,24 @@ def _paste_pfp_in_zone(card, pfp, zone_key):
 
 
 async def generate_card(username, avg_dmg, kd, assists, total_kills,
-                        survival_time, ovr, legend_name, pfp_url, rarity=None):
+                        survival_time, ovr, legend_name, pfp_url, rarity=None, guild_id=None):
     if rarity is None:
         rarity = roll_rarity()
 
     rarity_name = rarity["name"]
-    print(f"[CARD] {rarity_name} | OVR:{ovr} | {legend_name} | {username}")
+
+    # Randomly pick a card style
+    style = random.choice([1, 2, 3])
+    if style == 1:
+        templates = RARITY_TEMPLATES_S1
+        zones = ZONES_S1
+    elif style == 2:
+        templates = RARITY_TEMPLATES_S2
+        zones = ZONES_S2
+    else:
+        templates = RARITY_TEMPLATES_S3
+        zones = ZONES_S3
+    print(f"[CARD] Style {style} | {rarity_name} | OVR:{ovr} | {legend_name} | {username}")
 
     import asyncio
     leg_task = asyncio.create_task(get_legend_image(legend_name))
@@ -211,7 +295,7 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
 
     # Load template
     try:
-        card = _load_template(rarity_name)
+        card = _load_template(rarity_name, templates)
     except FileNotFoundError as e:
         logger.error("Template missing: %s", e)
         card = Image.new("RGBA", (918, 1152), (230, 225, 210))
@@ -222,7 +306,7 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
     bg_color = card.getpixel((150, 750))[:3]
 
     def blank(zone_key, color=None):
-        x0, y0, x1, y1 = ZONES[zone_key]
+        x0, y0, x1, y1 = zones[zone_key]
         draw.rectangle([x0, y0, x1, y1], fill=color or bg_color)
 
     # Blank all placeholder zones
@@ -237,20 +321,20 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
 
     # 1. Legend art
     if leg_img:
-        _paste_legend(card, leg_img.convert("RGBA"), "art_box")
+        _paste_legend(card, leg_img.convert("RGBA"), "art_box", zones)
         draw = ImageDraw.Draw(card)
 
     # 2. OVR number — large
-    _draw_text_in_zone(draw, str(ovr), "ovr", font_size=88, color=(15,15,20))
+    _draw_text_in_zone(draw, str(ovr), "ovr", font_size=88, color=(15,15,20), zones=zones)
 
     # 3. Role
-    _draw_text_in_zone(draw, role, "role", font_size=30, color=(30,30,35))
+    _draw_text_in_zone(draw, role, "role", font_size=30, color=(30,30,35), zones=zones)
 
     # 4. PFP
-    _paste_pfp_in_zone(card, pfp_img, "pfp")
+    _paste_pfp_in_zone(card, pfp_img, "pfp", zones)
 
     # 5. Username
-    _draw_text_in_zone(draw, username.upper(), "name", font_size=70, color=(15,15,20))
+    _draw_text_in_zone(draw, username.upper(), "name", font_size=70, color=(15,15,20), zones=zones)
 
     # 6. Stats
     stats = [
@@ -261,7 +345,21 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
         ("stat_srt",    f"{survival_time:.1f}m"),
     ]
     for zone_key, value in stats:
-        _draw_text_in_zone(draw, value, zone_key, font_size=38, color=(15,15,20))
+        _draw_text_in_zone(draw, value, zone_key, font_size=38, color=(15,15,20), zones=zones)
+
+    # ── Server logo overlay ──
+    if guild_id and guild_id in SERVER_LOGOS:
+        logo_path = SERVER_LOGOS[guild_id]
+        if os.path.exists(logo_path):
+            try:
+                x0, y0, x1, y1 = LOGO_ZONES[style]
+                zw, zh = x1-x0, y1-y0
+                logo = Image.open(logo_path).convert("RGBA")
+                logo = logo.resize((zw, zh), Image.LANCZOS)
+                card.paste(logo, (x0, y0), logo)
+                print(f"[CARD] Server logo applied for guild {guild_id}")
+            except Exception as e:
+                print(f"[CARD] Logo paste failed: {e}")
 
     buf = io.BytesIO()
     card.convert("RGB").save(buf, format="PNG", optimize=True)

@@ -48,7 +48,7 @@ tree = bot.tree
 
 # ── Rate limiting & queue ─────────────────────────────────────
 # Max 1 request per user per 30 seconds
-RATE_LIMIT_SECONDS = 0
+RATE_LIMIT_SECONDS = 30
 user_last_request: dict[int, float] = {}
 
 # Global semaphore — max 3 cards generating at once
@@ -223,6 +223,7 @@ async def playercard(
                 legend_name=resolved_legend,
                 pfp_url=pfp_url,
                 rarity=rarity,
+                guild_id=interaction.guild_id,
             )
         except Exception as e:
             logger.error("Card generation failed: %s\n%s", e, traceback.format_exc())
