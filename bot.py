@@ -48,7 +48,7 @@ tree = bot.tree
 
 # ── Rate limiting & queue ─────────────────────────────────────
 # Max 1 request per user per 30 seconds
-RATE_LIMIT_SECONDS = 30
+RATE_LIMIT_SECONDS = 0
 user_last_request: dict[int, float] = {}
 
 # Global semaphore — max 3 cards generating at once

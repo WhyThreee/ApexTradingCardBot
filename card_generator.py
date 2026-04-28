@@ -338,7 +338,7 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
     _paste_pfp_in_zone(card, pfp_img, "pfp", zones)
 
     # 5. Username — lower text for Style 3
-    name_offset = 8 if style == 3 else 0
+    name_offset = 5 if style == 3 else 0
     _draw_text_in_zone(draw, username.upper(), "name", font_size=70, color=(15,15,20), zones=zones, y_offset=name_offset)
 
     # 6. Stats
