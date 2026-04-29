@@ -301,6 +301,8 @@ async def playercard(
 
 @bot.event
 async def on_ready():
+    # Force clear and re-sync all commands globally
+    tree.clear_commands(guild=None)
     await tree.sync()
     logger.info("✅ Bot ready — logged in as %s (ID: %s)", bot.user, bot.user.id)
     logger.info("Slash commands synced.")
