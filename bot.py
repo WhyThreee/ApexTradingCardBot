@@ -11,6 +11,7 @@ Requires:
 """
 
 import os
+import re
 import logging
 import traceback
 import asyncio
@@ -178,10 +179,13 @@ async def playercard(
     # ----------------------------------------------------------------
     # Step 3: Resolve legend
     # ----------------------------------------------------------------
+    # Strip any HTML/injection chars from legend input
+    if legend:
+        legend = re.sub(r"[<>{}\[\]\\]", "", legend).strip()[:50]
     resolved_legend = _resolve_legend_name(legend, player_data["most_played_legend"])
 
     # ── Validate and apply custom role ───────────────────────────
-    VALID_ROLES = ["ANCHOR", "FRAGGER", "REFRAG", "SUPPORT"]
+    VALID_ROLES = ["ANCHOR", "FRAGGER", "REFRAG", "SUPPORT", "IGL"]
     resolved_role = None
     if role:
         role_upper = role.strip().upper()[:20]  # limit length
@@ -189,7 +193,7 @@ async def playercard(
             resolved_role = role_upper
         else:
             await interaction.followup.send(
-                f"❌ Invalid role `{role}`. Choose from: ANCHOR, FRAGGER, REFRAG, SUPPORT",
+                f"❌ Invalid role `{role}`. Choose from: ANCHOR, FRAGGER, REFRAG, SUPPORT, IGL",
                 ephemeral=True,
             )
             return
