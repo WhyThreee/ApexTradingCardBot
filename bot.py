@@ -329,3 +329,4 @@ if __name__ == "__main__":
             "Create a .env file with DISCORD_TOKEN=your_token_here"
         )
     bot.run(token)
+# Force redeploy
