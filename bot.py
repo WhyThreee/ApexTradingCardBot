@@ -48,7 +48,7 @@ tree = bot.tree
 
 # ── Rate limiting & queue ─────────────────────────────────────
 # Max 1 request per user per 30 seconds
-RATE_LIMIT_SECONDS = 0
+RATE_LIMIT_SECONDS = 30
 user_last_request: dict[int, float] = {}
 
 # Global semaphore — max 3 cards generating at once
@@ -69,7 +69,7 @@ def _resolve_legend_name(legend_input: Optional[str], scraped_legend: str) -> st
     if not legend_input:
         return scraped_legend
 
-    normalized = legend_input.strip().lower()
+    normalized = legend_input.strip().lower()[:50]  # cap length
 
     # Random legend roll
     if normalized == "random":
@@ -105,12 +105,14 @@ def _format_survival(raw: float) -> str:
 )
 @app_commands.describe(
     overstat_url="Your Overstat.gg profile URL  (e.g. https://overstat.gg/player/123.YourName/overview)",
-    legend="(Optional) Legend to use on the card. Defaults to your most-played.",
+    legend="(Optional) Legend name, or 'random'. Defaults to your most-played.",
+    role="(Optional) Your role: ANCHOR, FRAGGER, REFRAG, or SUPPORT. Overrides auto-detected role.",
 )
 async def playercard(
     interaction: discord.Interaction,
     overstat_url: str,
     legend: Optional[str] = None,
+    role: Optional[str] = None,
 ):
     """
     Slash command: /playercard <overstat_url> [legend]
@@ -148,13 +150,18 @@ async def playercard(
         return
 
     # ── Step 1: Validate URL ──────────────────────────────────────
-    if "overstat.gg" not in overstat_url.lower():
+    url_clean = overstat_url.strip()[:300]
+    if not url_clean.lower().startswith("https://overstat.gg/player/"):
         await interaction.followup.send(
             "❌ Please provide a valid **Overstat.gg** profile URL.\n"
             "Example: `https://overstat.gg/player/2584.ColoHockey_/overview`",
             ephemeral=True,
         )
         return
+    if any(c in url_clean for c in [";", "&", "|", "`", "$", "(", ")", "\n", "\r"]):
+        await interaction.followup.send("❌ Invalid URL format.", ephemeral=True)
+        return
+    overstat_url = url_clean
 
     # ── Step 2: Scrape ───────────────────────────────────────────
     try:
@@ -172,6 +179,20 @@ async def playercard(
     # Step 3: Resolve legend
     # ----------------------------------------------------------------
     resolved_legend = _resolve_legend_name(legend, player_data["most_played_legend"])
+
+    # ── Validate and apply custom role ───────────────────────────
+    VALID_ROLES = ["ANCHOR", "FRAGGER", "REFRAG", "SUPPORT"]
+    resolved_role = None
+    if role:
+        role_upper = role.strip().upper()[:20]  # limit length
+        if role_upper in VALID_ROLES:
+            resolved_role = role_upper
+        else:
+            await interaction.followup.send(
+                f"❌ Invalid role `{role}`. Choose from: ANCHOR, FRAGGER, REFRAG, SUPPORT",
+                ephemeral=True,
+            )
+            return
 
     # ----------------------------------------------------------------
     # Step 4: Calculate OVR
@@ -211,7 +232,7 @@ async def playercard(
     # ----------------------------------------------------------------
     async with CARD_SEMAPHORE:
         try:
-            discord_name = interaction.user.display_name
+            discord_name = interaction.user.display_name[:32].replace('@', '').replace('`', '')
             card_bytes = await generate_card(
                 username=discord_name,
                 avg_dmg=player_data["avg_dmg"],
@@ -224,6 +245,7 @@ async def playercard(
                 pfp_url=pfp_url,
                 rarity=rarity,
                 guild_id=interaction.guild_id,
+                role_override=resolved_role,
             )
         except Exception as e:
             logger.error("Card generation failed: %s\n%s", e, traceback.format_exc())
@@ -250,8 +272,9 @@ async def playercard(
         "HOLO": "🌈",
     }.get(rarity["name"], "⬜")
 
+    safe_username = player_data['username'].replace('@','').replace('`','').replace('*','')[:32]
     embed = discord.Embed(
-        title=f"{rarity_emoji} {player_data['username'].upper()} — {rarity['name']} CARD",
+        title=f"{rarity_emoji} {safe_username.upper()} — {rarity['name']} CARD",
         description=(
             f"**Legend:** {resolved_legend}  |  "
             f"**OVR:** {ovr}  |  "
@@ -261,7 +284,7 @@ async def playercard(
     )
     embed.set_image(url=f"attachment://{player_data['username']}_playercard.png")
     embed.set_footer(
-        text=f"Requested by {interaction.user.display_name}  •  Data from Overstat.gg",
+        text=f"Requested by {discord_name}  •  Data from Overstat.gg",
         icon_url=pfp_url or "",
     )
 
