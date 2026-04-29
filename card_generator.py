@@ -266,7 +266,7 @@ def _paste_pfp_in_zone(card, pfp, zone_key, zones=None):
 
 
 async def generate_card(username, avg_dmg, kd, assists, total_kills,
-                        survival_time, ovr, legend_name, pfp_url, rarity=None, guild_id=None):
+                        survival_time, ovr, legend_name, pfp_url, rarity=None, guild_id=None, role_override=None):
     if rarity is None:
         rarity = roll_rarity()
 
@@ -291,7 +291,7 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
     leg_img  = await leg_task
     pfp_img  = await pfp_task if pfp_task else None
 
-    role = LEGEND_TO_ROLE.get(legend_name.lower(), "FRAGGER")
+    role = role_override if role_override else LEGEND_TO_ROLE.get(legend_name.lower(), "FRAGGER")
 
     # Load template
     try:
@@ -373,3 +373,4 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
     card.convert("RGB").save(buf, format="PNG", optimize=True)
     buf.seek(0)
     return buf.read()
+# Wed Apr 29 02:43:25 UTC 2026
