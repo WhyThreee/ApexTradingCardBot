@@ -93,7 +93,7 @@ ZONES_S3 = {
 # Logo zones per style (where server logo gets pasted)
 LOGO_ZONES = {
     1: (136,  985, 453, 1099),  # Style 1 - bottom left
-    2: (290,   85, 430,  220),  # Style 2 - top center (tighter)
+    2: (290,   72, 430,  207),  # Style 2 - top center (moved up 13px)
     3: ( 91,  963, 246, 1091),  # Style 3 - bottom left
 }
 
@@ -354,7 +354,12 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
 
     # ── Server logo overlay ──
     if guild_id and guild_id in SERVER_LOGOS:
-        logo_path = SERVER_LOGOS[guild_id]
+        base_path = SERVER_LOGOS[guild_id]
+        # Style 3 (dark card) uses white logo, styles 1 & 2 use black logo
+        if style == 3:
+            logo_path = base_path.replace("VESA_Black", "VESA_White")
+        else:
+            logo_path = base_path.replace("VESA_White", "VESA_Black")
         if os.path.exists(logo_path):
             try:
                 x0, y0, x1, y1 = LOGO_ZONES[style]
