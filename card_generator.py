@@ -93,8 +93,8 @@ ZONES_S3 = {
 # Logo zones per style (where server logo gets pasted)
 LOGO_ZONES = {
     1: (136, 985, 250, 1099),  # Style 1 - bottom left
-    2: (290,   72, 430,  207),  # Style 2 - top center (moved up 13px)
-    3: ( 91,  956, 246, 1084),  # Style 3 - bottom left
+    2: (300, 65, 415, 190),  # 115w x 125h, smaller and up 7px
+    3: (91, 958, 219, 1086),  # 128x128 square, 2px down
 }
 
 # Server logo config — guild_id -> logo file path
