@@ -103,6 +103,10 @@ SERVER_LOGOS = {
         "light": "assets/logos/VESA_Black.png",  # styles 1 & 2
         "dark":  "assets/logos/VESA_White.png",  # style 3
     },
+    1043350338574495764: {
+        "light": "assets/logos/VESA_Black.png",  # styles 1 & 2
+        "dark":  "assets/logos/VESA_White.png",  # style 3
+    },
     1292412338749837383: {
         "light": "assets/logos/VESA_Black.png",
         "dark":  "assets/logos/VESA_White.png",
