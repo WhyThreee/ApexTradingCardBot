@@ -92,15 +92,21 @@ ZONES_S3 = {
 
 # Logo zones per style (where server logo gets pasted)
 LOGO_ZONES = {
-    1: (136,  985, 453, 1099),  # Style 1 - bottom left
+    1: (136, 985, 250, 1099),  # Style 1 - bottom left
     2: (290,   72, 430,  207),  # Style 2 - top center (moved up 13px)
     3: ( 91,  953, 246, 1081),  # Style 3 - bottom left
 }
 
 # Server logo config — guild_id -> logo file path
 SERVER_LOGOS = {
-    1196223607655899187: "assets/logos/VESA_White.png",  # TESTING SERVER
-    1292412338749837383: "assets/logos/VESA_White.png",
+    1196223607655899187: {
+        "light": "assets/logos/VESA_Black.png",  # styles 1 & 2
+        "dark":  "assets/logos/VESA_White.png",  # style 3
+    },
+    1292412338749837383: {
+        "light": "assets/logos/VESA_Black.png",
+        "dark":  "assets/logos/VESA_White.png",
+    },
 }
 
 # Default zones (Style 1)
@@ -354,12 +360,8 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
 
     # ── Server logo overlay ──
     if guild_id and guild_id in SERVER_LOGOS:
-        base_path = SERVER_LOGOS[guild_id]
-        # Style 3 (dark card) uses white logo, styles 1 & 2 use black logo
-        if style == 3:
-            logo_path = base_path.replace("VESA_Black", "VESA_White")
-        else:
-            logo_path = base_path.replace("VESA_White", "VESA_Black")
+        logo_config = SERVER_LOGOS[guild_id]
+        logo_path = logo_config["dark"] if style == 3 else logo_config["light"]
         if os.path.exists(logo_path):
             try:
                 x0, y0, x1, y1 = LOGO_ZONES[style]
