@@ -94,7 +94,7 @@ ZONES_S3 = {
 LOGO_ZONES = {
     1: (136,  985, 453, 1099),  # Style 1 - bottom left
     2: (290,   72, 430,  207),  # Style 2 - top center (moved up 13px)
-    3: ( 91,  963, 246, 1091),  # Style 3 - bottom left
+    3: ( 91,  953, 246, 1081),  # Style 3 - bottom left
 }
 
 # Server logo config — guild_id -> logo file path
@@ -359,7 +359,7 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
         if style == 3:
             logo_path = base_path.replace("VESA_Black", "VESA_White")
         else:
-            logo_path = base_path.replace("VESA_White", "VESA_Black")
+            logo_path = base_path.replace("VESA_Black", "VESA_White")
         if os.path.exists(logo_path):
             try:
                 x0, y0, x1, y1 = LOGO_ZONES[style]
