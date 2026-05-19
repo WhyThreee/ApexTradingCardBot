@@ -359,7 +359,7 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
         if style == 3:
             logo_path = base_path.replace("VESA_Black", "VESA_White")
         else:
-            logo_path = base_path.replace("VESA_Black", "VESA_White")
+            logo_path = base_path.replace("VESA_White", "VESA_Black")
         if os.path.exists(logo_path):
             try:
                 x0, y0, x1, y1 = LOGO_ZONES[style]
