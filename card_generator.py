@@ -93,7 +93,7 @@ ZONES_S3 = {
 # Logo zones per style (where server logo gets pasted)
 LOGO_ZONES = {
     1: (136, 985, 250, 1099),  # Style 1 - bottom left
-    2: (300, 65, 415, 190),  # 115w x 125h, smaller and up 7px
+    2: (285, 65, 430, 190),
     3: (91, 958, 219, 1086),  # 128x128 square, 2px down
 }
 
@@ -375,13 +375,6 @@ async def generate_card(username, avg_dmg, kd, assists, total_kills,
                 # logo_bg = (0, 0, 0) if style == 3 else (255, 255, 255)
                 # draw.rectangle([x0, y0, x1, y1], fill=logo_bg)
                 logo = Image.open(logo_path).convert("RGBA")
-                # Strip black background — make all near-black pixels transparent
-                pixels = logo.load()
-                for y in range(logo.height):
-                    for x in range(logo.width):
-                        r, g, b, a = pixels[x, y]
-                        if r < 40 and g < 40 and b < 40:
-                            pixels[x, y] = (0, 0, 0, 0)
                 logo = logo.resize((zw, zh), Image.LANCZOS)
                 card.paste(logo, (x0, y0), logo)
                 print(f"[CARD] Server logo applied for guild {guild_id}")
